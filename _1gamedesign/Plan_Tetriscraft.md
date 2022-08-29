@@ -1,6 +1,11 @@
-| title                 | author | date       | category | layout |
-| --------------------- | ------ | ---------- | -------- | ------ |
-| 俄罗斯麦块 游戏策划案 | Tu     | 2022-03-17 |          | post   |
+---
+title: 俄罗斯麦块 游戏策划案
+author: Tu
+date: 2022-03-17
+description:
+category:
+layout: post
+---
 
 ## 目录
 
