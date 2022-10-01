@@ -159,16 +159,62 @@ class VoiceManager:
 
 汉化的时候，我们也需要对场景中独有的文本内容或者脚本内容进行汉化。在软件中对 MonoBehavior、TextAsset 类型的文件进行过滤查看。
 
-以这个游戏为例，我们发现在 **_resources.assets_** 中存在一个名为 _Event01_ 、格式为 _MonoBehaviour_ 的对话脚本。首先尝试 **UABE** 的导出功能，查看导出后的文件，发现文件内容根本对不上。
+以这个游戏为例，我们发现在 **_resources.assets_** 中存在一个名为 _Event01_ 、格式为 _MonoBehaviour_ 的对话脚本。首先尝试 **UABE** 的导出功能，查看导出后的文件，就可以找到需要修改的文本。
 
-尝试解决这种问题有三种思路：
+偶尔会发生导出失败的情况，具体表现为内容缺失。尝试解决这种问题有两种思路：
 
 1. 首先是更换 **UABE** 的版本。在测试过程中使用的 3.0 版本不能正常导出，但是更换为 2.2 版本却能导出。
-2. 另外一种思路是尝试使用 **Asset Studio** 导出脚本后，使用 **UABE** 重新导入。这种方式笔者没有进一步尝试，因此不确定可行性。
-3. 第三种方式是使用 **UABE** 的导出 Raw 功能，对 16 进制的 _.dat_ 文件进行修改。
-   之后的步骤会比较麻烦，我们需要使用十六进制编辑器对 _.dat_ 格式的源文件中的字符串进行修改。这里有两个难点：
-   - 需要增加或删除字节来对齐修改后的内容
-   - 修改后需要修改字符串前用于表明字符串长度的数值
+2. 另外一种方法是使用 **UABE** 的导出 Raw 功能，对 16 进制的 _.dat_ 文件进行修改。
+
+为了打开 _.dat_ 格式的文件，我们需要一个十六进制编辑器。对照**UABE**和**Asset Studio**中的代码，我们可以发现一些规律。
+
+```（导出自UABE）
+指向GammeObject的指针：
+00 00 00 00 | 00 00 00 00 | 01 00 00 00			int m_FileID = 0 ; int m_PathID = 0 ; UInt8 m_Enabled = 1 ;
+指向MonoScript：
+03 00 00 00 | 5B 00 00 00				int m_FileID = 3 ; int m_PathId = 91 ;
+07 00 00 00 | 45 76 65 6E | 74 30 31 00 		字段长度 = 7 ; 字段内容 E v e n t 0 1 ； MonoScript的名字
+内容：
+9B 01 00 00 						Array 长度 01 9B = 411 ;
+08 00 00 00 | 50 72 6F 6C | 6F 67 75 65			字段长度 = 9 ; 字段内容 P r o l o g u e
+00 00 00 00						字段长度 = 0
+05 00 00 00 | 42 6C 61 63 | 6B 00 00 00			字段长度 = 5 ; 字段内容 B l a c k
+04 00 00 00 | 6E 75 6C 6C				字段长度 = 4 ; 字段内容 n u l l
+......
+```
+
+```（提取自UABE）
+0 MonoBehaviour Base
+ 0 PPtr<GameObject> m_GameObject
+  0 int m_FileID = 0
+  0 int m_PathID = 0
+ 1 UInt8 m_Enabled = 1
+ 0 PPtr<MonoScript> m_Script
+  0 int m_FileID = 3
+  0 int m_PathID = 91
+ 1 string m_Name = "Event01"
+ 0 Param param
+  0 Array Array (411 items)
+   0 int size = 411
+   [0]
+    0 Param data
+     1 string Status = "Prologue"
+     1 string JumpScene = ""
+     1 string CG = "Black"
+     0 int Fade = 0
+     1 string Effect = "null"
+     1 string SE = "null"
+     1 string BGM = "null"
+     1 string Voice = "null"
+     1 string Name = "null"
+     1 string Text = "null"
+```
+
+因此，寻找到对应需要修改的文本之后，我们需要进行如下步骤：
+
+1. 替换对应位置的字节码
+2. 末尾补齐至 4 位
+3. 对字段长度声明进行修改
 
 ---
 
