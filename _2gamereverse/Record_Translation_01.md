@@ -161,28 +161,6 @@ class VoiceManager:
 
 以这个游戏为例，我们发现在 **_resources.assets_** 中存在一个名为 _Event01_ 、格式为 _MonoBehaviour_ 的对话脚本。首先尝试 **UABE** 的导出功能，查看导出后的文件，就可以找到需要修改的文本。
 
-偶尔会发生导出失败的情况，具体表现为内容缺失。尝试解决这种问题有两种思路：
-
-1. 首先是更换 **UABE** 的版本。在测试过程中使用的 3.0 版本不能正常导出，但是更换为 2.2 版本却能导出。
-2. 另外一种方法是使用 **UABE** 的导出 Raw 功能，对 16 进制的 _.dat_ 文件进行修改。
-
-为了打开 _.dat_ 格式的文件，我们需要一个十六进制编辑器。对照**UABE**和**Asset Studio**中的代码，我们可以发现一些规律。
-
-```（导出自UABE）
-指向GammeObject的指针：
-00 00 00 00 | 00 00 00 00 | 01 00 00 00			int m_FileID = 0 ; int m_PathID = 0 ; UInt8 m_Enabled = 1 ;
-指向MonoScript：
-03 00 00 00 | 5B 00 00 00				int m_FileID = 3 ; int m_PathId = 91 ;
-07 00 00 00 | 45 76 65 6E | 74 30 31 00 		字段长度 = 7 ; 字段内容 E v e n t 0 1 ； MonoScript的名字
-内容：
-9B 01 00 00 						Array 长度 01 9B = 411 ;
-08 00 00 00 | 50 72 6F 6C | 6F 67 75 65			字段长度 = 9 ; 字段内容 P r o l o g u e
-00 00 00 00						字段长度 = 0
-05 00 00 00 | 42 6C 61 63 | 6B 00 00 00			字段长度 = 5 ; 字段内容 B l a c k
-04 00 00 00 | 6E 75 6C 6C				字段长度 = 4 ; 字段内容 n u l l
-......
-```
-
 ```（提取自UABE）
 0 MonoBehaviour Base
  0 PPtr<GameObject> m_GameObject
@@ -208,6 +186,28 @@ class VoiceManager:
      1 string Voice = "null"
      1 string Name = "null"
      1 string Text = "null"
+```
+
+偶尔会发生导出失败的情况，具体表现为内容缺失。尝试解决这种问题有两种思路：
+
+1. 首先是更换 **UABE** 的版本。在测试过程中使用的 3.0 版本不能正常导出，但是更换为 2.2 版本却能导出。
+2. 另外一种方法是使用 **UABE** 的导出 Raw 功能，对 16 进制的 _.dat_ 文件进行修改。
+
+为了打开 _.dat_ 格式的文件，我们需要一个十六进制编辑器。对照**UABE**和**Asset Studio**中的代码，我们可以发现一些规律。
+
+```（导出自UABE）
+指向GammeObject：
+00 00 00 00 | 00 00 00 00 | 01 00 00 00			int m_FileID = 0 ; int m_PathID = 0 ; UInt8 m_Enabled = 1 ;
+指向MonoScript：
+03 00 00 00 | 5B 00 00 00				int m_FileID = 3 ; int m_PathId = 91 ;
+07 00 00 00 | 45 76 65 6E | 74 30 31 00 		字段长度 = 7 ; 字段内容 E v e n t 0 1 ； MonoScript的名字
+内容：
+9B 01 00 00 						Array 长度 ; (HEX) 019B = (DEC) 411 ;
+08 00 00 00 | 50 72 6F 6C | 6F 67 75 65			字段长度 = 8 ; 字段内容 P r o l o g u e
+00 00 00 00						字段长度 = 0
+05 00 00 00 | 42 6C 61 63 | 6B 00 00 00			字段长度 = 5 ; 字段内容 B l a c k
+04 00 00 00 | 6E 75 6C 6C				字段长度 = 4 ; 字段内容 n u l l
+......
 ```
 
 因此，寻找到对应需要修改的文本之后，我们需要进行如下步骤：
